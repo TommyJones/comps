@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 data_raw/20_newsgroups/
+.DS_Store
