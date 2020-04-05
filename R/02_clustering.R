@@ -85,7 +85,7 @@ eval_mat <- parallel::mclapply(
       )
     
   },
-  mc.cores = 6)
+  mc.cores = parallel::detectCores() - 1)
 
 eval_mat <- do.call(rbind, eval_mat)
 
