@@ -10,4 +10,4 @@ library(cloudml)
 # note that if this is the first time you run this, you need to run the command
 # "gcloud_install()" then "gcloud_init()" to set everything up
 
-cloudml_train("_run_all.R", master_type = "complex_model_s")
+cloudml_train("script.R", master_type = "n1-highcpu-96")

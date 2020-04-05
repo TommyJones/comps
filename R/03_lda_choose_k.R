@@ -151,7 +151,7 @@ model_eval <- parallel::mclapply(
     # return eval tibble
     return(eval)
     
-  }, mc.cores = 6)
+  }, mc.cores = parallel::detectCores() - 1)
 
 # combine the tibble eval
 
