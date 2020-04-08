@@ -44,8 +44,7 @@ proc1 <- function(d, k, alpha, beta) {
     optimize_alpha = FALSE,
     calc_likelihood = TRUE,
     calc_r2 = FALSE,
-    return_data = FALSE,
-    .options = future_options(scheduling = 4)
+    return_data = FALSE
   )
   
   m
