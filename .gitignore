@@ -6,3 +6,6 @@ data_raw/20_newsgroups/
 .DS_Store
 *.RData
 vis
+Outputs.html
+Outputs_cache
+Outputs_files
