@@ -99,4 +99,4 @@ save(tf, file = "data_derived/term_freq_all.RData")
 
 save(csim, cdist, file = "clustering_distances.RData")
 
-save(eval_mat, file = "data_derived/cluster_eval.RData")
+save(eval_mat, h, file = "data_derived/cluster_eval.RData")
