@@ -1,0 +1,56 @@
+---
+title: "Comps Graphics"
+author: "Tommy Jones"
+date: "4/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Purpose
+
+This pulls together graphics and other outputs. To run this .Rmd file, you must run each of the scripts in the "R/" directory in order from "01_format_data.R" to "04_lda_retrain.R". A warning: these scripts, run all the way through, will take substantial memory and ~3 days runtime (at least on my 2019 Macbook Pro). 
+
+```{r}
+library(textmineR)
+
+library(tidylda)
+
+library(tidyverse)
+```
+
+
+## Initial Corpus Summary
+
+```{r}
+load("data_derived/20_newsgroups_formatted.RData")
+
+tf <- TermDocFreq(dtm)
+
+tf <- as_tibble(tf)
+
+# frequency of top 20 terms
+tf %>%
+  select(term, term_freq) %>%
+  arrange(desc(term_freq)) %>%
+  top_n(20) %>%
+  ggplot() + 
+  geom_bar(aes(x = reorder(term, term_freq), y = term_freq), stat = "identity") + 
+  coord_flip() +
+  labs(x = "Term", y = "Frequency", 
+       title = "Most Frequent Terms in 20 Newsgropus, Excluding Stop Words")
+  
+
+# distribution of each class
+tibble(class = doc_class) %>%
+  count(class) %>%
+  ggplot() + 
+  geom_bar(aes(x = class, y = n), stat = "identity") +
+  coord_flip() +
+  labs(x = "Class", y = "Frequency", title = "Freqency of Class in 20 Newsgroups Data")
+
+
+```
+
