@@ -170,5 +170,5 @@ eval_lda <- do.call(rbind, model_eval)
 
 save(eval_lda, file = "data_derived/eval_lda_choose_k.RData")
 
-beepr::beep(8)
+beepr::beep(3)
 
