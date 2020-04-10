@@ -18,7 +18,7 @@ load("data_derived/20_newsgroups_formatted.RData")
 batches <- lapply(
   1:100,
   function(b){
-    sample(1:nrow(dtm), 3000)
+    sample(1:nrow(dtm_bigram), 2000)
   }
 )
 
@@ -40,7 +40,7 @@ eval_cluster <- parallel::mclapply(
   batches,
   function(b){
     # calculate tf-idf
-    d <- dtm[b$doc_sample, ]
+    d <- dtm_bigram[b$doc_sample, ]
     
     d <- d[, colSums(d) > 0]
     

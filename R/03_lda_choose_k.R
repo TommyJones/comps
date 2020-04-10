@@ -9,10 +9,11 @@ library(coda)
 
 load("data_derived/20_newsgroups_formatted.RData")
 
-# random search over a range of k
-# alternatively, use sigopt for search over k
-# store coherence and likelihood
 
+# set random seed
+set.seed(90210)
+
+# random search over a range of k
 k_range <- sample(5:2000, 100)
 
 # create a directory to store models for future reference if needed
@@ -33,7 +34,7 @@ calc_eval <- function(m, dtm_train, dtm_test) {
     frac2 = 0.5
   )
   
-  converged <- abs(geweke$z) < 1.96
+  geweke <- geweke$z
   
   # vocabulary corrections of dtm
   dtm_train <- dtm_train[, colSums(dtm_train) > 0]
@@ -95,7 +96,7 @@ calc_eval <- function(m, dtm_train, dtm_test) {
   # return result
   eval <- tibble(
     k = nrow(m$phi),
-    converged = converged,
+    geweke = geweke,
     coherence_in = coherence_in,
     coherence_out = coherence_out,
     likelihood_in = likelihood_in,
@@ -114,9 +115,9 @@ model_eval <- parallel::mclapply(
     # randomly sample 1,000 docs to train on 
     train_rows <- sample(1:nrow(dtm), 1000)
     
-    dtm_lda1 <- dtm[train_rows, ]
+    dtm_lda1 <- dtm_bigram[train_rows, ]
     
-    dtm_lda2 <- dtm[-train_rows, ]
+    dtm_lda2 <- dtm_bigram[-train_rows, ]
     
     # need smaller vocabulary set to calculate likelihood without 
     # overflow/underflow error
@@ -124,9 +125,9 @@ model_eval <- parallel::mclapply(
     
     dtm_lda2 <- dtm_lda2[, colSums(dtm_lda2) > 0]
     
-    alpha <- 0.01
+    alpha <- 0.05
     
-    beta <- colSums(dtm_lda1) / sum(dtm_lda1) * 135
+    beta <- 0.01
     
     m <- FitLdaModel(
       dtm = dtm_lda1,

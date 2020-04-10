@@ -7,25 +7,20 @@ library(Matrix)
 
 load("data_derived/20_newsgroups_formatted.RData")
 
-# # set parallel options
-# library(furrr)
-# 
-# plan(multiprocess)
-
 # set random seed
 set.seed(90210)
 
 # subset the DTM so we get results in meaningful time
-lda_rows <- sample(1:nrow(dtm), 1000)
+lda_rows <- sample(1:nrow(dtm_bigram), 1000)
 
-d <- dtm[lda_rows, ]
+d <- dtm_bigram[lda_rows, ]
 
 d <- d[, colSums(d) > 0]
 
 # declare additional global variables
-alpha <- 0.01
+alpha <- 0.05
 
-beta <- colSums(d) / sum(d) * 135
+beta <- 0.01
 
 k <- 565
 

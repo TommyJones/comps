@@ -7,11 +7,12 @@ library(cluster)
 
 load("data_derived/20_newsgroups_formatted.RData")
 
-# get term frequencies and idf vector
-tf <- TermDocFreq(dtm)
+# set random seed
+set.seed(90210)
+
 
 # calculate cosine similarity/distance off of tfidf
-csim <- t(dtm) * tf$idf
+csim <- t(dtm_bigram) * tf_bigram_filtered$idf
 
 csim <- t(csim)
 
@@ -26,22 +27,21 @@ cdist <- as.dist(1 - csim)
 # hierarchical clustering
 h <- hclust(cdist, "ward.D")
 
-# plot(h, labels = rep(".", nrow(dtm)))
+# plot(h, labels = rep("", nrow(dtm)))
 
-clust_range <- seq(5, 2000, by = 5) 
-
-# randomize order for more parallel efficiency
-clust_range <- clust_range[sample(seq_along(clust_range), length(clust_range))]
+# cluster sizes to try; 
+# randomize order and small smaple size for more parallel efficiency
+clust_range <- sample(5:2000, 100)
 
 eval_mat <- parallel::mclapply(
-  clust_range[sample(seq_along(clust_range), 100)], # random sample to do fewer runs
+  clust_range,
   function(k){
     
     clust <- cutree(h, k)
     
     # calculate coherence
-    ctm <- Cluster2TopicModel(dtm = dtm, clustering = clust, cpus = 1)
-    coh <- CalcProbCoherence(phi = ctm$phi, dtm = dtm)
+    ctm <- Cluster2TopicModel(dtm = dtm_bigram, clustering = clust, cpus = 1)
+    coh <- CalcProbCoherence(phi = ctm$phi, dtm = dtm_bigram)
     
     # calculate distance from every point to every cluster
     clust_pts <- lapply(
