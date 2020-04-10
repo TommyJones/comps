@@ -9,6 +9,8 @@ library(textmineR)
 
 library(stringr)
 
+library(tidyverse)
+
 ### load 20 newsgroups data and build dtm ----
 if (! file.exists("data_raw")) { # if statement so I don't duplicate download etc.
   download.file("http://www.cs.cmu.edu/afs/cs.cmu.edu/project/theo-20/www/data/data_raw.tar.gz",
@@ -37,25 +39,55 @@ names(docs) <- docnames
 doc_class <- stringr::str_split(docnames, pattern = "/") %>%
   sapply(function(x) x[3])
 
-dtm <- CreateDtm(doc_vec = docs) # stopwords English and SMART
 
-dim(dtm)
+# create a dtm of unigrams
+dtm_unigram <- CreateDtm(doc_vec = docs)
 
-# prune vocab so that only words appearing in 3 or more documents are included
-dtm <- dtm[, colSums(dtm > 0) >= 3]
+tf_unigram <- as_tibble(
+  TermDocFreq(dtm_unigram)
+)
 
-dim(dtm)
+# filter based on words... 
+# appearing in 5 or more documents, and
+# appearing in less than every document
+# note this caps minimum term frequency at 5
+dtm_unigram <- dtm_unigram[, tf_unigram$doc_freq >= 5 &
+                             tf_unigram$doc_freq < nrow(dtm_unigram) &
+                             tf_unigram$term_freq >= 10]
 
-### sample rows into three groups ----
+# filtered term frequency mat
+tf_unigram_filtered <- as_tibble(
+  TermDocFreq(dtm_unigram)
+)
 
-idx <- seq_len(nrow(dtm))
+# create dtm of unigrams and bigrams
+# follow same procs above
+dtm_bigram <- CreateDtm(doc_vec = docs, ngram_window = c(1,2))
 
-train1 <- sample(idx, 6665)
+tf_bigram <- as_tibble(
+  TermDocFreq(dtm_bigram)
+)
 
-test <- setdiff(idx, c(train1))
+dtm_bigram <- dtm_bigram[, tf_bigram$doc_freq >= 5 &
+                           tf_bigram$doc_freq < nrow(dtm_bigram) & 
+                           tf_bigram$term_freq >= 10]
+
+tf_bigram_filtered <- as_tibble(
+  TermDocFreq(dtm_bigram)
+)
 
 ### save the things we need for future use ----
-save(docs, dtm, train1, test, doc_class, file = "data_derived/20_newsgroups_formatted.RData")
+save(
+  docs, 
+  doc_class, 
+  dtm_unigram,
+  tf_unigram,
+  tf_unigram_filtered,
+  dtm_bigram,
+  tf_bigram,
+  tf_bigram_filtered,
+  file = "data_derived/20_newsgroups_formatted.RData"
+  )
 
 
 
