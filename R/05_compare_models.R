@@ -17,14 +17,14 @@ load("data_derived/20_newsgroups_formatted.RData")
 clustering <- cutree(h, k = 1000)
 
 cluster_tm <- Cluster2TopicModel(
-  dtm = dtm,
+  dtm = dtm_bigram,
   clustering = clustering
   )
 
 cluster_summary <- tibble(
   cluster = seq_len(ncol(cluster_tm$theta)),
   num_docs = colSums(cluster_tm$theta),
-  num_tokens = (rowSums(dtm) %*% cluster_tm$theta)[1, ],
+  num_tokens = (rowSums(dtm_bigram) %*% cluster_tm$theta)[1, ],
   coherence = CalcProbCoherence(cluster_tm$phi, dtm)
 )
 
@@ -115,3 +115,5 @@ save(lda_baseline_dist,
      lda_clust_dist,
      file = "data_derived/compare_models.RData"
      )
+
+beepr::beep(9)
