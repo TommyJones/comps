@@ -3,10 +3,12 @@ title: "Comps Graphics"
 author: "Tommy Jones"
 date: "4/9/2020"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
 ## Purpose
@@ -19,6 +21,10 @@ library(textmineR)
 library(tidylda)
 
 library(tidyverse)
+
+library(cluster)
+
+library(patchwork)
 ```
 
 
@@ -37,9 +43,10 @@ tf %>%
   arrange(desc(term_freq)) %>%
   top_n(20) %>%
   ggplot() + 
-  geom_bar(aes(x = reorder(term, term_freq), y = term_freq), stat = "identity") + 
+  geom_bar(aes(x = reorder(term, term_freq), y = term_freq), 
+           stat = "identity", fill = "#fc8d62") + 
   coord_flip() +
-  labs(x = "Term", y = "Frequency", 
+  labs(x = "", y = "Frequency", 
        title = "Most Frequent Terms in 20 Newsgropus, Excluding Stop Words")
   
 
@@ -47,9 +54,155 @@ tf %>%
 tibble(class = doc_class) %>%
   count(class) %>%
   ggplot() + 
-  geom_bar(aes(x = class, y = n), stat = "identity") +
+  geom_bar(aes(x = class, y = n), stat = "identity", fill = "#66c2a5") +
   coord_flip() +
-  labs(x = "Class", y = "Frequency", title = "Freqency of Class in 20 Newsgroups Data")
+  labs(x = "", y = "Frequency", title = "Freqency of Class in 20 Newsgroups Data")
+
+```
+
+
+
+## Clustering
+
+```{r, fig.height = 20, fig.width=30}
+rm(list = ls())
+
+load("data_derived/20_newsgroups_formatted.RData")
+
+load("data_derived/cluster_eval.RData")
+
+# plot the dendrogram
+plot(h, labels = rep("", length(h$labels)))
+```
+
+```{r fig.height = 9, fig.width = 9}
+# plot metrics to choose number of clusters
+clust_plot_s <- 
+  ggplot(eval_mat) +
+  geom_line(aes(x = k, y = avg_silh), color = "#66c2a5", size = 1.3) + 
+  labs(x = "Number of Clusters", y = "",
+       title = "Silhouette Coefficient")
+
+clust_plot_d <-
+  ggplot(eval_mat) +
+  geom_line(aes(x = k, y = avg_within_dist), color = "#fc8d62", size = 1.3) + 
+  labs(x = "Number of Clusters", y = "",
+       title = "Average Intra-Cluster Distances")
+
+clust_plot_c <-
+  ggplot(eval_mat) +
+  geom_line(aes(x = k, y = coherence), color = "#8da0cb", size = 1.3) + 
+  labs(x = "Number of Clusters", y = "",
+       title = "Semantic Coherence")
+
+clust_plot_d / clust_plot_s / clust_plot_c
+
+```
+
+```{r}
+
+```
+
+```{r}
+# If you want any plots or output from the above calc, put them here...
+```
+
+## Choose the number of topics
+
+```{r, fig.height = 9, fig.width = 9}
+rm(list = ls())
+
+load("data_derived/eval_lda_choose_k.RData")
+
+lda_plot_c <- 
+  ggplot(eval_lda, aes(x = k, y = coherence_out)) + 
+  geom_point(color = "#66c2a5") +
+  geom_smooth() + 
+  labs(x = "Number of Topics",
+       y = "",
+       title = "Semantic Coherence")
+
+lda_plot_p <- 
+  ggplot(eval_lda, aes(x = k, y = perplexity_out)) + 
+  geom_point(color = "#fc8d62") +
+  geom_smooth() + 
+  labs(x = "Number of Topics",
+       y = "",
+       title = "Perplexity")
+
+lda_plot_l <- 
+  ggplot(eval_lda, aes(x = k, y = likelihood_out)) + 
+  geom_point(color = "#8da0cb") +
+  geom_smooth() + 
+  labs(x = "Number of Topics",
+       y = "",
+       title = "Log Likelihood")
+
+lda_plot_c / lda_plot_p / lda_plot_l
+
+```
+
+
+## Convergence exercises
+
+```{r}
+rm(list = ls())
+
+load("data_Derived/lda_retrain.RData")
+```
+
+
+```{r fig.height = 9, fig.width = 9}
+
+ll1 <- result[[1]]$log_likelihood %>%
+  ggplot() + 
+  geom_line(aes(x = iteration, y = log_likelihood), color = "#66c2a5", size = 1.3) +
+  labs(x = "Iteration",
+       y = "",
+       title = "1,000 Iterations Straight")
+
+ll2 <- result[[2]]$likelihoods %>%
+  ggplot() + 
+  geom_line(aes(x = iteration, y = log_likelihood), color = "#fc8d62", size = 1.3) +
+  labs(x = "Iteration",
+       y = "",
+       title = "200 Iterations then 800 Iterations")
+
+ll3 <- result[[3]]$likelihoods %>%
+  ggplot() + 
+  geom_line(aes(x = iteration, y = log_likelihood), color = "#8da0cb", size = 1.3) +
+  labs(x = "Iteration",
+       y = "",
+       title = "200 Iterations X 5")
+
+ll1 / ll2 / ll3
+
+```
+
+
+## Compare models
+
+```{r}
+
+rm(list = ls())
+
+1+1
+
+load("data_derived/compare_models.RData")
+```
+
+```{r}
+
+heatmap(lda_baseline_dist)
+
+heatmap(lda_12_dist)
+
+heatmap(lda_13_dist)
+
+heatmap(lda_23_dist)
+
+heatmap(lda_clust_dist)
+
 
 
 ```
