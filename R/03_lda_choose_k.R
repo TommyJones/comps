@@ -113,7 +113,7 @@ model_eval <- parallel::mclapply(
   function(k){
     
     # randomly sample 1,000 docs to train on 
-    train_rows <- sample(1:nrow(dtm), 1000)
+    train_rows <- sample(1:nrow(dtm_bigram), 1000)
     
     dtm_lda1 <- dtm_bigram[train_rows, ]
     
@@ -171,4 +171,3 @@ eval_lda <- do.call(rbind, model_eval)
 save(eval_lda, file = "data_derived/eval_lda_choose_k.RData")
 
 beepr::beep(3)
-

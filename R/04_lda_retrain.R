@@ -22,7 +22,7 @@ alpha <- 0.05
 
 beta <- 0.01
 
-k <- 565
+k <- 507
 
 # define three procedures for each that I am to run
 
@@ -47,7 +47,7 @@ proc1 <- function(d, k, alpha, beta) {
 
 proc2 <- function(d, k, alpha, beta) {
   # proc 2 builds a model in two stages: 200 iterations then 800 iterations
-  m <- tidylda(
+  m1 <- tidylda(
     dtm = d,
     k = k,
     iterations = 200,
@@ -60,10 +60,10 @@ proc2 <- function(d, k, alpha, beta) {
     return_data = FALSE
   )
   
-  m1_likelihood <- m$log_likelihood
+  m1_likelihood <- m1$log_likelihood
   
-  m <- refit(
-    object = m,
+  m2 <- refit(
+    object = m1,
     dtm = d,
     iterations = 800,
     burnin = 700,
@@ -75,11 +75,11 @@ proc2 <- function(d, k, alpha, beta) {
     phi_as_prior = FALSE
   )
   
-  m2_likelihood <- m$log_likelihood %>%
+  m2_likelihood <- m2$log_likelihood %>%
     mutate(iteration = iteration + 200)
   
   list(
-    m_final = m, 
+    models = list(m1, m2),
     likelihoods = rbind(m1_likelihood, m2_likelihood)
   )
 }
@@ -107,6 +107,13 @@ proc3 <- function(d, k, alpha, beta) {
   
   likelihoods[[1]] <- m$log_likelihood
   
+  model_list <- vector(
+    mode = "list",
+    length = 5
+  )
+  
+  model_list[[1]] <- m
+  
   for (j in 2:4) {
     
     m <- refit(
@@ -123,6 +130,8 @@ proc3 <- function(d, k, alpha, beta) {
     )
     
     likelihoods[[j]] <- m$log_likelihood
+    
+    model_list[[j]] <- m
   }
   
   m <- refit(
@@ -140,12 +149,14 @@ proc3 <- function(d, k, alpha, beta) {
   
   likelihoods[[5]] <- m$log_likelihood
   
+  model_list[[5]] <- m
+  
   for (j in 2:length(likelihoods)) {
     likelihoods[[j]]$iteration <- likelihoods[[j - 1]]$iteration + 200
   }
   
   list(
-    m_final = m,
+    models = model_list,
     likelihoods = do.call(rbind, likelihoods)
   )
 }

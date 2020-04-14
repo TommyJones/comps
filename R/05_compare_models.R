@@ -25,7 +25,7 @@ cluster_summary <- tibble(
   cluster = seq_len(ncol(cluster_tm$theta)),
   num_docs = colSums(cluster_tm$theta),
   num_tokens = (rowSums(dtm_bigram) %*% cluster_tm$theta)[1, ],
-  coherence = CalcProbCoherence(cluster_tm$phi, dtm)
+  coherence = CalcProbCoherence(cluster_tm$phi, dtm_bigram)
 )
 
 tt <- GetTopTerms(cluster_tm$phi, 3)

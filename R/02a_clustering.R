@@ -95,7 +95,7 @@ eval_mat <- do.call(rbind, eval_mat)
 
 # ggplot(data = eval_mat) + geom_line(mapping = aes(x = k, y = coherence))
 
-save(tf, file = "data_derived/term_freq_all.RData")
+# save(tf, file = "data_derived/term_freq_all.RData")
 
 save(csim, cdist, file = "clustering_distances.RData")
 
