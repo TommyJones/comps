@@ -12,14 +12,9 @@ load("data_derived/cluster_eval.RData")
 
 load("data_derived/clustering_distances.RData")
 
+load("data_derived/cluster_solution.RData")
+
 load("data_derived/20_newsgroups_formatted.RData")
-
-clustering <- cutree(h, k = 1000)
-
-cluster_tm <- Cluster2TopicModel(
-  dtm = dtm_bigram,
-  clustering = clustering
-  )
 
 cluster_summary <- tibble(
   cluster = seq_len(ncol(cluster_tm$theta)),
@@ -62,23 +57,23 @@ get_hellinger <- function(mat1, mat2) {
   
 }
 
-# get_csim <- function(mat1, mat2) {
-#   
-#   # in case we are comparing two models
-#   rownames(mat1) <- paste0(rownames(mat1), ".1")
-#   
-#   # normalize rows
-#   mat1 <- mat1 / sqrt(rowSums(mat1 * mat1))
-#   
-#   mat1[is.na(mat1)] <- 0
-#   
-#   mat2 <- mat2 / sqrt(rowSums(mat2 * mat2))
-#   
-#   mat2[is.na(mat2)] <- 0
-#   
-#   # return result
-#   mat1 %*% t(mat2)
-# }
+get_csim <- function(mat1, mat2) {
+
+  # in case we are comparing two models
+  rownames(mat1) <- paste0(rownames(mat1), ".1")
+
+  # normalize rows
+  mat1 <- mat1 / sqrt(rowSums(mat1 * mat1))
+
+  mat1[is.na(mat1)] <- 0
+
+  mat2 <- mat2 / sqrt(rowSums(mat2 * mat2))
+
+  mat2[is.na(mat2)] <- 0
+
+  # return result
+  mat1 %*% t(mat2)
+}
 
 # compare the lda models
 load("data_derived/lda_retrain.RData")

@@ -93,11 +93,23 @@ eval_mat <- parallel::mclapply(
 
 eval_mat <- do.call(rbind, eval_mat)
 
+
+# save this clustering as a topic model where each document has one and only
+# one topic, its cluster assignment!
+clustering <- cutree(h, k = 1000) # hard coded!
+
+cluster_tm <- Cluster2TopicModel(
+  dtm = dtm_bigram,
+  clustering = clustering
+)
+
 # ggplot(data = eval_mat) + geom_line(mapping = aes(x = k, y = coherence))
 
 # save(tf, file = "data_derived/term_freq_all.RData")
 
-save(csim, cdist, file = "clustering_distances.RData")
+save(clustering, cluster_tm, file = "data_derived/cluster_solution.RData")
+
+save(csim, cdist, file = "data_derived/clustering_distances.RData")
 
 save(eval_mat, h, file = "data_derived/cluster_eval.RData")
 
