@@ -8,7 +8,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, cache.lazy = FALSE)
 ```
 
 ## Purpose
@@ -184,7 +184,7 @@ lda_plot_c / lda_plot_p / lda_plot_l
 ```{r}
 rm(list = ls())
 
-load("data_Derived/lda_retrain.RData")
+load("data_derived/lda_retrain.RData")
 ```
 
 
@@ -222,7 +222,7 @@ ll1 / ll2 / ll3
 
 rm(list = ls())
 
-load("data_Derived/lda_retrain.RData")
+load("data_derived/lda_retrain.RData")
 
 load("data_derived/compare_models.RData")
 
@@ -371,7 +371,7 @@ heatmap(lda_clust_dist,
 ```{r}
 rm(list = ls())
 
-load("data_Derived/compare_transfer.RData")
+load("data_derived/compare_transfer.RData")
 ```
 
 ```{r}
