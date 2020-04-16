@@ -57,50 +57,85 @@ get_hellinger <- function(mat1, mat2) {
   
 }
 
-get_csim <- function(mat1, mat2) {
-
-  # in case we are comparing two models
-  rownames(mat1) <- paste0(rownames(mat1), ".1")
-
-  # normalize rows
-  mat1 <- mat1 / sqrt(rowSums(mat1 * mat1))
-
-  mat1[is.na(mat1)] <- 0
-
-  mat2 <- mat2 / sqrt(rowSums(mat2 * mat2))
-
-  mat2[is.na(mat2)] <- 0
-
-  # return result
-  mat1 %*% t(mat2)
-}
+# get_csim <- function(mat1, mat2) {
+# 
+#   # in case we are comparing two models
+#   rownames(mat1) <- paste0(rownames(mat1), ".1")
+# 
+#   # normalize rows
+#   mat1 <- mat1 / sqrt(rowSums(mat1 * mat1))
+# 
+#   mat1[is.na(mat1)] <- 0
+# 
+#   mat2 <- mat2 / sqrt(rowSums(mat2 * mat2))
+# 
+#   mat2[is.na(mat2)] <- 0
+# 
+#   # return result
+#   mat1 %*% t(mat2)
+# }
 
 # compare the lda models
+# using the transpose of theta
+# rationale: this should be cleaner than phi or gamma because 
+# (a) it doesn't have as many categories and 
+# (b) no expectation that it would be a power law distribution
 load("data_derived/lda_retrain.RData")
 
 lda_baseline_dist <- CalcHellingerDist(
-  result[[1]]$phi
+  t(result[[1]]$theta)
 )
 
 lda_12_dist <- get_hellinger(
-  result[[1]]$phi,
-  result[[2]]$m_final$phi
+  t(result[[1]]$theta),
+  t(result[[2]]$models[[2]]$theta)
 )
 
 lda_13_dist <- get_hellinger(
-  result[[1]]$phi,
-  result[[3]]$m_final$phi
+  t(result[[1]]$theta),
+  t(result[[3]]$models[[5]]$theta)
 )
 
 lda_23_dist <- get_hellinger(
-  result[[2]]$m_final$phi,
-  result[[3]]$m_final$phi
+  t(result[[2]]$models[[2]]$theta),
+  t(result[[3]]$models[[5]]$theta)
 )
 
 # compare lda to clustering
 lda_clust_dist <- get_hellinger(
-  result[[1]]$phi,
-  cluster_tm$phi[, colnames(result[[1]]$phi)]
+  t(result[[1]]$theta),
+  t(cluster_tm$theta[lda_rows, ])
+)
+
+# get lda and clustering into the same 2d space
+vocab_intersect <- intersect(
+  colnames(result[[1]]$phi),
+  colnames(cluster_tm$phi)
+  )
+
+# cluster_topic_dist <- rbind(
+#   result[[1]]$phi[, vocab_intersect],
+#   cluster_tm$phi[, vocab_intersect]
+# )
+
+cluster_topic_dist <- rbind(
+  t(result[[1]]$theta),
+  t(cluster_tm$theta[lda_rows, ])
+)
+
+
+cluster_topic_dist <- CalcHellingerDist(cluster_topic_dist)
+
+cluster_topic_layout <- cmdscale(d = cluster_topic_dist)
+
+topic_layout <- cmdscale(d = lda_baseline_dist)
+
+save(
+  cluster_topic_dist,
+  cluster_topic_layout,
+  lda_baseline_dist,
+  topic_layout,
+  file = "data_derived/model_layouts.RData"
 )
 
 save(lda_baseline_dist,
@@ -108,7 +143,8 @@ save(lda_baseline_dist,
      lda_13_dist,
      lda_23_dist,
      lda_clust_dist,
+     cluster_topic_dist,
      file = "data_derived/compare_models.RData"
      )
 
-beepr::beep(9)
+beepr::beep(0)
