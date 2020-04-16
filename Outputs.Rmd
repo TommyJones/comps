@@ -93,13 +93,15 @@ for (d in top_20_by_class) {
 
 ## Clustering
 
-```{r, fig.height = 20, fig.width=30}
+```{r}
 rm(list = ls())
 
 load("data_derived/20_newsgroups_formatted.RData")
 
 load("data_derived/cluster_eval.RData")
+```
 
+```{r, fig.height = 20, fig.width=30}
 # plot the dendrogram
 plot(h, labels = rep("", length(h$labels)))
 ```
@@ -214,30 +216,173 @@ ll1 / ll2 / ll3
 ```
 
 
+## Analysis of topics and clusters
+
+```{r}
+
+rm(list = ls())
+
+load("data_Derived/lda_retrain.RData")
+
+load("data_derived/compare_models.RData")
+
+load("data_derived/model_layouts.RData")
+
+load("data_derived/cluster_summary.RData")
+
+load("data_derived/cluster_solution.RData")
+
+```
+
+```{r}
+# layout of topics on their own
+topic_summary <- 
+  result[[1]]$summary %>%  
+  mutate(
+    x = topic_layout[, 1], 
+    y = topic_layout[, 2]
+  )
+
+ggplot(topic_summary) +
+  geom_point(
+    aes(x = x, y = y, size = prevalence, color = coherence), 
+    alpha = 0.65
+  ) + 
+  labs(
+    x = "",
+    y = "",
+    title = "Intertopic distance map of LDA - 507 topics"
+  ) + 
+  scale_color_distiller(type = "div", palette = 9) + 
+  theme_dark()
+
+# layout of clusters and topics
+tc_summary <- 
+  cluster_summary %>%
+  mutate(
+    prevalence = num_tokens / sum(num_tokens) * 100,
+    is_cluster = "yes",
+    topic = str_c("c_", cluster)
+  ) %>%
+  select(topic, prevalence, coherence, is_cluster, top_terms)
+  
+tc_summary <- rbind(
+  topic_summary %>% 
+    mutate(is_cluster = "no", topic = as.character(topic)) %>%
+    select(topic, prevalence, coherence, is_cluster, top_terms),
+  tc_summary
+) %>%
+  mutate(x = cluster_topic_layout[, 1], y = cluster_topic_layout[, 2])
+
+# colored by cluster/topic
+ggplot(tc_summary) +
+  geom_point(
+    aes(x = x, y = y, size = prevalence, color = is_cluster), 
+    alpha = 0.65
+  ) + 
+  labs(
+    x = "",
+    y = "",
+    title = "Intertopic distance map of LDA (507) and Clustering (1,000)"
+  ) + 
+  scale_color_brewer(type = "qual", palette = 7) + 
+  theme_dark()
+
+# colored by coherence
+ggplot(tc_summary) +
+  geom_point(
+    aes(x = x, y = y, size = prevalence, color = coherence), 
+    alpha = 0.65
+  ) + 
+  labs(
+    x = "",
+    y = "",
+    title = "Intertopic distance map of LDA (507) and Clustering (1,000)"
+  ) + 
+  scale_color_distiller(type = "div", palette = 9) + 
+  theme_dark()
+
+# distribution of coherence and log(prevalence)
+ggplot(tc_summary) + 
+  geom_freqpoly(
+    aes(x = log(prevalence), y = ..density.., color = is_cluster)
+  ) + 
+  labs(title = "Distribution of log(Prevalence)")
+
+ggplot(tc_summary) + 
+  geom_freqpoly(
+    aes(x = coherence, y = ..density.., color = is_cluster)
+  ) + 
+  labs(title = "Distribution of Coherence")
+
+# Most prevalent topics and clusters
+tc_summary %>%
+  arrange(desc(prevalence)) %>%
+  select(topic, prevalence, coherence, is_cluster, top_terms)
+
+tc_summary %>%
+  filter(is_cluster == "no") %>%
+  arrange(desc(prevalence)) %>%
+  select(topic, prevalence, coherence, is_cluster, top_terms)
+
+tc_summary %>%
+  filter(is_cluster == "yes") %>%
+  arrange(desc(prevalence)) %>%
+  select(topic, prevalence, coherence, is_cluster, top_terms)
+
+
+
+```
+
+
+
 ## Compare models
 
 ```{r}
 
 rm(list = ls())
 
-1+1
-
 load("data_derived/compare_models.RData")
 ```
 
 ```{r}
 
-heatmap(lda_baseline_dist)
+heatmap(lda_baseline_dist,
+        main = "LDA baseline: model 1 to itself",
+        Rowv = NA, Colv = NA)
 
-heatmap(lda_12_dist)
+heatmap(lda_12_dist,
+        main = "LDA model 1 to model 2")
 
-heatmap(lda_13_dist)
+heatmap(lda_13_dist,
+        main = "LDA model 1 to model 3")
 
-heatmap(lda_23_dist)
+heatmap(lda_23_dist,
+        main = "LDA model 2 to model 3")
 
-heatmap(lda_clust_dist)
+heatmap(lda_clust_dist,
+        main = "LDA model 1 to clustering model")
 
 
+```
+
+# Compare evolution
+
+```{r}
+rm(list = ls())
+
+load("data_Derived/compare_transfer.RData")
+```
+
+```{r}
+
+heatmap(comp_dists[[5]],
+        Rowv = NA, Colv = NA,
+        main = "Distance from 200 iterations to 1000 iterations")
+
+ggplot(comp_topic_349) + 
+  geom_line(aes(x = iterations, y = value, color = token)) +
+  labs(title = "Change in P(token|topic = 349) during training")
 
 ```
 

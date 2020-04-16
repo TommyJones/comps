@@ -147,4 +147,51 @@ save(lda_baseline_dist,
      file = "data_derived/compare_models.RData"
      )
 
+# compare models across runs for model 3
+model_list <- result[[3]]$models
+
+comp_indices <- list(c(1,2),
+                     c(2,3),
+                     c(3,4),
+                     c(4,5),
+                     c(1,5))
+
+comp_dists <- 
+  parallel::mclapply(
+    comp_indices,
+    function(x) {
+      get_hellinger(
+        t(model_list[[x[1]]]$theta),
+        t(model_list[[x[2]]]$theta)
+      )
+    },
+    mc.cores = length(comp_indices)
+  )
+
+comp_topic_349 <- lapply(model_list, function(x) x$phi[349, ])
+
+comp_topic_349 <- do.call(cbind, comp_topic_349)
+
+comp_topic_349 <- t(comp_topic_349[
+  c("image", "processing", "images", "analysis", "data", 
+    "image_processing", "tools", "tool", "user", "display"), 
+])
+
+comp_topic_349 <- 
+  comp_topic_349 %>%
+  as_tibble() %>%
+  mutate(iterations = c(200, 400, 600, 800, 1000)) %>%
+  pivot_longer(
+    cols = -iterations,
+    names_to = "token",
+    values_to = "value"
+  )
+
+save(
+  comp_topic_349,
+  comp_dists,
+  model_list,
+  file = "data_derived/compare_transfer.RData"
+)
+
 beepr::beep(0)
