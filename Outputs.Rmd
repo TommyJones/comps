@@ -64,7 +64,23 @@ tibble(class = doc_class) %>%
   ggplot() + 
   geom_bar(aes(x = class, y = n), stat = "identity", fill = "#66c2a5") +
   coord_flip() +
-  labs(x = "", y = "Frequency", title = "Freqency of Class in 20 Newsgroups Data")
+  labs(x = "", y = "", title = "Number of Documents in Each Class")
+
+tibble(
+  doc = rownames(dtm_unigram), 
+  length = rowSums(dtm_unigram), 
+  class = doc_class
+) %>% 
+  group_by(class) %>% 
+  summarise(num_tokens = sum(length)) %>%
+  ggplot() +
+  geom_bar(aes(y = num_tokens / 1000, x = class), stat = "identity", fill = "#8da0cb") +
+  coord_flip() + 
+  labs(
+    x = "",
+    y = "",
+    title = "Count of Tokens in Each Class ('000)"
+  )
 
 # top 20 for each class
 top_20_by_class <- lapply(
@@ -383,6 +399,78 @@ heatmap(comp_dists[[5]],
 ggplot(comp_topic_349) + 
   geom_line(aes(x = iterations, y = value, color = token)) +
   labs(title = "Change in P(token|topic = 349) during training")
+
+```
+
+# MDS of 3 models by themselves
+
+```{r}
+rm(list = ls())
+
+load("data_derived/lda_retrain.RData")
+```
+
+```{r}
+# compute distances
+d1 <- CalcHellingerDist(result[[1]]$phi) # t(result[[1]]$theta)
+
+d2 <- CalcHellingerDist(result[[2]]$models[[2]]$phi) # t(result[[2]]$models[[2]]$theta)
+
+d3 <- CalcHellingerDist(result[[3]]$models[[5]]$phi) # t(result[[3]]$models[[5]]$theta)
+
+# get MDS
+l1 <- cmdscale(d1)
+
+l2 <- cmdscale(d2)
+
+l3 <- cmdscale(d3)
+
+# put together into tibbles for plotting
+get_plot <- function(ts, model_num) {
+  
+  p <- ts %>%
+    ggplot() +
+    geom_point(
+      aes(x = x, y = y, size = prevalence, color = coherence), 
+      alpha = 0.65
+    ) + 
+    labs(
+      x = "",
+      y = "",
+      title = paste0("Intertopic distance map of chain ", model_num)
+    ) + 
+    scale_color_distiller(type = "div", palette = 9) + 
+    theme_dark()
+
+  p
+}
+
+ts1 <- 
+  result[[1]]$summary %>%  
+  mutate(
+    x = l1[, 1], 
+    y = l1[, 2]
+  )
+
+ts2 <- 
+  result[[2]]$models[[2]]$summary %>%  
+  mutate(
+    x = l2[, 1], 
+    y = l2[, 2]
+  )
+
+ts3 <- 
+  result[[3]]$models[[5]]$summary %>%  
+  mutate(
+    x = l3[, 1], 
+    y = l3[, 2]
+  )
+
+plot(get_plot(ts1, 1))
+
+plot(get_plot(ts2, 2))
+
+plot(get_plot(ts3, 3))
 
 ```
 
