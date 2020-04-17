@@ -2,6 +2,8 @@
 
 library(textmineR)
 
+library(tidylda)
+
 library(LDAvis)
 
 load("data_derived/lda_retrain.RData")
